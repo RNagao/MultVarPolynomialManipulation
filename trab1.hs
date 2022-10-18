@@ -38,8 +38,28 @@ dropTableIndexes table indexes = dropTableIndexes (delIndexList table ((last ind
 -- Recursively call the function with the tables dropped
 -- in the end it will ++ the factors summed and create the normalized polynomial
 -- TEST CASE normalizePolynomial [[1,1,1,0], [3,2,1,0], [4,1,1,0], [0,1,1,0], [2,2,1,0], [4,0,0,0]]
--- [[5,1,1,0],[5,2,1,0],[4,0,0,0]]
+-- result [[5,1,1,0],[5,2,1,0],[4,0,0,0]]
 normalizePolynomial :: [[Int]] -> [[Int]]
 normalizePolynomial [] = []
 normalizePolynomial [[]] = [[]]
 normalizePolynomial poly = [sumAllEqFactors poly (findEquivalentFactors (poly !! 0) poly)] ++ normalizePolynomial (dropTableIndexes poly (findEquivalentFactors (poly !! 0) poly))
+
+-- Sum polynomials
+-- take the two polynomials and ++
+-- normalize the generated polynomial
+-- TEST CASE sumPolynomials [[1,0,0,1],[3,1,0,0],[1,0,1,0]] [[3,1,1,0],[1,1,0,0],[5,0,0,1]]
+-- result [[6,0,0,1],[4,1,0,0],[1,0,1,0],[3,1,1,0]]
+sumPolynomials :: [[Int]] -> [[Int]] -> [[Int]]
+sumPolynomials [[]] [[]] =[]
+sumPolynomials [[]] y = y
+sumPolynomials x [[]] = x
+sumPolynomials x y = normalizePolynomial (x ++ y)
+
+-- Sum an array of polynomials
+-- recursively take the head of the array, sum with the rest of the array and normalize
+-- TEST CASE sumMultPolynomials [[[1,0,0,1],[3,1,0,0],[1,0,1,0]],[[3,1,1,0],[1,1,0,0],[5,0,0,1]],[[7,1,1,1]]]
+-- result [[6,0,0,1],[4,1,0,0],[1,0,1,0],[3,1,1,0],[7,1,1,1]]
+sumMultPolynomials :: [[[Int]]] -> [[Int]]
+sumMultPolynomials [] = []
+sumMultPolynomials [[[]]] = []
+sumMultPolynomials polyList = normalizePolynomial (sumPolynomials (head polyList) (sumMultPolynomials (tail polyList)))
