@@ -59,7 +59,40 @@ sumPolynomials x y = normalizePolynomial (x ++ y)
 -- recursively take the head of the array, sum with the rest of the array and normalize
 -- TEST CASE sumMultPolynomials [[[1,0,0,1],[3,1,0,0],[1,0,1,0]],[[3,1,1,0],[1,1,0,0],[5,0,0,1]],[[7,1,1,1]]]
 -- result [[6,0,0,1],[4,1,0,0],[1,0,1,0],[3,1,1,0],[7,1,1,1]]
-sumMultPolynomials :: [[[Int]]] -> [[Int]]
-sumMultPolynomials [] = []
-sumMultPolynomials [[[]]] = []
-sumMultPolynomials polyList = normalizePolynomial (sumPolynomials (head polyList) (sumMultPolynomials (tail polyList)))
+sumPolynomialsList :: [[[Int]]] -> [[Int]]
+sumPolynomialsList [] = []
+sumPolynomialsList [[[]]] = []
+sumPolynomialsList polyList = normalizePolynomial (sumPolynomials (head polyList) (sumPolynomialsList (tail polyList)))
+
+-- Sum two arrays by indexes
+sumIndexesArrays :: [Int] -> [Int] -> [Int]
+sumIndexesArrays [] [] = []
+sumIndexesArrays (x:xs) (y:ys) = [x + y] ++ sumIndexesArrays xs ys
+
+-- Multiply two factors
+multiplyFactors :: [Int] -> [Int] -> [Int]
+multiplyFactors (x:xs) (y:ys) = [x * y] ++ sumIndexesArrays xs ys
+
+-- Multiply a factor and a polynomial
+multiplyFactorPolynomial :: [Int] -> [[Int]] -> [[Int]]
+multiplyFactorPolynomial factor [] = []
+multiplyFactorPolynomial factor poly = [multiplyFactors factor (head poly)] ++ multiplyFactorPolynomial factor (tail poly)
+
+-- Multiply two Polynomials
+-- use multiplyFactorPolynomial to multiply every factor of the first polynomial by the second one and then normalize the result
+-- TEST CASE multiplyPolynomials [[2,1,0], [4,0,1]] [[3,1,2], [(-5),0,0]]
+-- result [[6,2,2],[-10,1,0],[12,1,3],[-20,0,1]]
+multiplyPolynomials :: [[Int]] -> [[Int]] -> [[Int]]
+multiplyPolynomials [] y = []
+multiplyPolynomials x y = normalizePolynomial ((multiplyFactorPolynomial (head x) y) ++ multiplyPolynomials (tail x) y)
+
+-- Multiply an array of polynomials
+-- first multiply the first two polynomials of the array using multiplyPolynomials
+-- then concat the result with the list of the rest of the array not used, dropping the first two elements of the array
+-- recursively do that until it rests 1 element in the array
+-- TEST CASE multiplyPolynomialsList [[[1,1,0], [1,0,1]], [[1,1,0], [1,0,1]], [[1,1,0], [1,0,1]]]
+-- [[1,3,0],[3,2,1],[3,1,2],[1,0,3]]
+multiplyPolynomialsList :: [[[Int]]] -> [[Int]]
+multiplyPolynomialsList array | length array == 1 = head array
+    | otherwise = multiplyPolynomialsList ([multiplyPolynomials (head array) (array !! 1)] ++ (drop 2 array))
+
